@@ -1,0 +1,7 @@
+a
+buffer
+c
+d
+e
+ff
+how-to-find-hidden-web-directories-with-dirsearch/
