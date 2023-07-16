@@ -87,8 +87,6 @@ def _args_parse_dns(args):
 def _options():   
     args = parse_args()
 
-    print(1)
-
     if args.mode == "dir":
         args = _args_parse_dir(args)
 
@@ -108,15 +106,12 @@ def _options():
             res = requests.get(args.url, headers=header)
 
         except requests.exceptions.TooManyRedirects:
-            print(5)
             sys.exit()
 
         except requests.exceptions.ConnectionError:
-            print(6)
             sys.exit()
 
         except requests.exceptions.RequestException:
-            print(7)
             sys.exit()
             
         if args.exclude_extensions != None:
@@ -132,7 +127,6 @@ def _options():
         
         _file_check(args.wordlist)
 
-        print(4)
 
 
         if not 1 < args.threads < 50:
@@ -143,13 +137,11 @@ def _options():
 
         http_method = ["get", "head", "patch", "post", "put", "delete"]
 
-        print(3)
 
         if args.method.lower() not in http_method:
             print(FORE["red"] + f"[warn] http {args.method} method does not exists")
             sys.exit()
             
-        print(2)
 
         return vars(args)
 

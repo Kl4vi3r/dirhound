@@ -8,7 +8,6 @@ global FILE_PATH
 def get():
     try:
         FILE_PATH = "requirements.txt"
-        print(2)
         with open("requirements.txt", "r") as f:
             return f.read().splitlines()
     except FileNotFoundError:

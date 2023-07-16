@@ -43,7 +43,7 @@ def main():
 
 
     options.update(_options())
-    print(1)
+
     if options["mode"] == "dir":
         Scanner.run()  
     elif options["mode"] == "dns":
