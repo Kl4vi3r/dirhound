@@ -18,7 +18,10 @@ from urllib3.util.retry import Retry
 
 
 class Scanner():
-    def rate_limit(limit_rate, limit_interval):
+    def __init__(self):
+        self.exit_event = threading.Event()
+
+    def rate_limit(self, limit_rate, limit_interval):
         def decorator(func):
             rate_lock = threading.Lock()
             rate_count = 0
@@ -61,7 +64,7 @@ class Scanner():
         return decorator
     
 
-    @rate_limit(options["max_rate"], 1)
+    # @rate_limit(self, options["max_rate"], 1)
     def _requests(url, method="GET", headers=None, redirects=False, timeout=0.0, retries=3):
 
         session = requests.Session()
@@ -81,40 +84,47 @@ class Scanner():
         response = http_method[method.upper()](url, headers=headers, allow_redirects=redirects, timeout=timeout)
         return response
 
-    def threads():
+    def threads(self):
         try:
                 with concurrent.futures.ThreadPoolExecutor(max_workers=options["threads"]) as executor:
-                    futures = {executor.submit(Scanner.scan, word): word for word in options["_wordlist"]}
+                    # rate_limited_requests = self.rate_limit(options["max_rate"], 1, self._requests)
+                    futures = {executor.submit(self.scan, word): word for word in options["_wordlist"]}
                     
                     time.sleep(options["delay"])
 
-                    for future in concurrent.futures.as_completed(futures):
-                        future.result()
+                    concurrent.futures.wait(futures, return_when=concurrent.futures.FIRST_COMPLETED)
+
+                    for future in futures:
+                        future.cancel()
+
+                    executor.shutdown()
 
 
         except KeyboardInterrupt:
-            print("fail")
-            sys.exit()
+            self.exit_event.set()
+            print("CTRL + C detected, quitting the program")
+            sys.exit(1)
         
-    def scan(word=""):
-        header = {
-            "User-Agent":f"{options['user_agent']}"
-            "Cookie:"f"{options['cookie']}"
-        }
-        
-        if word != "":
-            if options["url"].endswith("/"):
-                request_url = f'{options["url"]}{word}'
-            else:
-                request_url = f'{options["url"]}/{word}'
+    def scan(self, word=""):
+        while not self.exit_event.is_set():
+            header = {
+                "User-Agent":f"{options['user_agent']}"
+                "Cookie:"f"{options['cookie']}"
+            }
+            
+            if word != "":
+                if options["url"].endswith("/"):
+                    request_url = f'{options["url"]}{word}'
+                else:
+                    request_url = f'{options["url"]}/{word}'
 
-            try:
-                res = Scanner._requests(request_url, options["method"], header, options["allow_redirect"], options["timeout"])
-                Output.response_code(res)
-            except requests.exceptions.Timeout:
-                pass
+                try:
+                    res = Scanner._requests(request_url, options["method"], header, options["allow_redirect"], options["timeout"])
+                    Output.response_code(res)
+                except requests.exceptions.Timeout:
+                    pass
 
-    def run():
+    def run(self):
         options["_wordlist"] = _extension_check(options)
 
         if options["output"] != None:
@@ -123,13 +133,16 @@ class Scanner():
                 Output.initialize(time_start)
             else:
                 Output.initialize(FORMATTING.date_format())
+        
+        self.exit_event = threading.Event()
 
-
-        DETAILS.scan_target()
+        DETAILS.scan_target()   
         print(FORE["magenta"] + STYLE["bright"] + f'[{FORMATTING.time_format()}]  Starting scan ...\n')
-        Scanner.threads()
+
+        self.threads()
 
         print(FORE["magenta"] + STYLE["bright"] + '\nScan has finished ...')
+    
 
 
 class Output():
@@ -168,3 +181,6 @@ class Output():
     def initialize(time):
         OUTPUT.validate_file_output()
         OUTPUT.initialize(time)
+
+
+

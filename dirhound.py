@@ -15,7 +15,7 @@ def main():
     config = ConfigParser()
     config.read("dependencies.ini")
 
-    if config.get_boolean("DEPENDENCIES", "check-dependencies"):
+    if config.get_boolean("DEPENDENCIES", "check-dependencies") == True:
         try:
             check()
         except (DistributionNotFound, VersionConflict):
@@ -41,7 +41,8 @@ def main():
     options.update(_options())
 
     if options["mode"] == "dir":
-        Scanner.run()  
+        dir_scan = Scanner()
+        dir_scan.run()  
     elif options["mode"] == "dns":
         DNS_Scanner.run()
 
