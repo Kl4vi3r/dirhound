@@ -41,8 +41,7 @@ def main():
     options.update(_options())
 
     if options["mode"] == "dir":
-        dir_scan = Scanner()
-        dir_scan.run()  
+        Scanner.run()
     elif options["mode"] == "dns":
         DNS_Scanner.run()
 
