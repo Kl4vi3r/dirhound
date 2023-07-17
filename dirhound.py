@@ -9,10 +9,6 @@ from core.dns import DNS_Scanner
 from core.opt import _options
 from core.scanner import Scanner
 
-#test
-if sys.version_info < (3, 10):
-    sys.stdout.write("Sorry, Dirhound requires Python 3.10 or higher\n")
-    sys.exit(1)
 
 
 def main():   
@@ -24,7 +20,7 @@ def main():
             check()
         except (DistributionNotFound, VersionConflict):
             option = input("Missing required dependencies to run.\n"
-                        "Do you want to automatically install them? [Y/n] ")
+                        "Do you want to automatically install? [Y/n] ")
         
             if option.lower() == "y":
                 print("Installing dependencies ...")

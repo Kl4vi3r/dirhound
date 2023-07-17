@@ -7,8 +7,7 @@ global FILE_PATH
 
 def get():
     try:
-        FILE_PATH = "requirements.txt"
-        with open("requirements.txt", "r") as f:
+        with open("requirements.txt", "r") as f: 
             return f.read().splitlines()
     except FileNotFoundError:
         print("Can't find requirements.txt")
@@ -20,7 +19,7 @@ def check():
 
 def install():
     try:
-        subprocess.check_call(['pip', 'install', '-r', 'requirements.txt'])
+        subprocess.check_call(['pip3', 'install', '-r', 'requirements.txt'])
     except subprocess.CalledProcessError:
         print("Failed to install dependencies.")
         sys.exit()
