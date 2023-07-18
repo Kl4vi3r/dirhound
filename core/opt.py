@@ -97,6 +97,10 @@ def _options():
             print(FORE["red"] + "[warn] Invalid URL")
             sys.exit()
         
+        else:
+            if args.url.startswith("http://"):
+                args.url = "https://" + args.url[7:]
+                    
         try:
             header = {
                 "User-Agent":f"{args.user_agent}"
