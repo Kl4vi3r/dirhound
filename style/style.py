@@ -49,7 +49,10 @@ class DETAILS:
         print(FORE["magenta"] + STYLE["bright"] + 'Target: ' + FORE["white"]+ STYLE["dim"] + options["url"] + STYLE["reset"] + "\n")
 
         print(FORE["magenta"] + STYLE["bright"] + 'Wordlist: ' + FORE["white"]+ STYLE["dim"] + options["wordlist"] + STYLE["reset"])
-        print(FORE["magenta"] + STYLE["bright"] + 'Extensions: ' + FORE["white"]+ STYLE["dim"] + options["extensions"] + STYLE["reset"])
+        if options["remove_extensions"] == True:   
+            print(FORE["magenta"] + STYLE["bright"] + 'Extensions: ' + FORE["white"]+ STYLE["dim"] + STYLE["reset"])
+        else:
+            print(FORE["magenta"] + STYLE["bright"] + 'Extensions: ' + FORE["white"]+ STYLE["dim"] + options["extensions"] + STYLE["reset"])
         print(FORE["magenta"] + STYLE["bright"] + 'Threads: ' + FORE["white"]+ STYLE["dim"] + str(options["threads"])+ FORE["magenta"] + STYLE["bright"] + "  |  HTTP-Method: " + FORE["white"]+ STYLE["dim"] + options["method"] + STYLE["reset"])
         
         if options["output"] != None:

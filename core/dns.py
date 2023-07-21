@@ -53,7 +53,7 @@ class subdomain:
             for ip_addr in ip_value:
                 ip = ip_addr.to_text()
                 try:
-                    url = f'http://{ip}'
+                    url = f'https://{ip}'
                     response = requests.get(url)
 
                     if response.status_code == 200:

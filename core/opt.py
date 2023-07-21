@@ -2,7 +2,6 @@ import dns.resolver
 import os
 import requests
 import re
-import socket
 import sys
 import validators
 
@@ -92,30 +91,34 @@ def _options():
 
         if not args.url:
             print(FORE["red"] + "[warn] Missing target URL (-u <URL>)")
+            sys.exit()
         
         if not validators.url(args.url):
             print(FORE["red"] + "[warn] Invalid URL")
             sys.exit()
         
-        else:
-            if args.url.startswith("http://"):
-                args.url = "https://" + args.url[7:]
+        # else:
+        #     if args.url.startswith("http://"):
+        #         args.url = "https://" + args.url[7:]
                     
         try:
             header = {
-                "User-Agent":f"{args.user_agent}"
-                "Cookie:"f"{args.cookie}"
+                "User-Agent": f"{args.user_agent}",
+                "Cookie": f"{args.cookie}"
             }
 
-            res = requests.get(args.url, headers=header)
+            requests.get(args.url, headers=header)
 
         except requests.exceptions.TooManyRedirects:
+            print(FORE["red"] + "[warn] Too Many Redirects on URL, please try again or use other URL")
             sys.exit()
 
         except requests.exceptions.ConnectionError:
+            print(FORE["red"] + "[warn] Connection error, please check your connection and try again")
             sys.exit()
 
         except requests.exceptions.RequestException:
+            print(FORE["red"] + "[warn] There was an ambiguous exception that occurred while handling your request, please try again")
             sys.exit()
             
         if args.exclude_extensions != None:
@@ -148,7 +151,6 @@ def _options():
             
 
         return vars(args)
-
 
 
     elif args.mode == "dns":
@@ -185,7 +187,7 @@ def _options():
 
         if args.include_records:
             for rec in args.include_records.split(","):
-                if _record_check(args.domain, None, rec):
+                if _record_check(args.domain, rec):
                     pass
                 else:
                     print(FORE["red"] + f"[warn] {rec} record for {args.domain} is not valid, try checking again")
@@ -254,10 +256,12 @@ def _record_sets(args):
 
 def _record_check(domain, rec):
     try:
-        answers = socket.getaddrinfo(domain, None, rec)
+        answers = dns.resolver.resolve(domain, rec)
         return len(answers) > 0
-    except socket.gaierror:
+    except (dns.rdatatype.UnknownRdatatype):
         return False
+    except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
+        return True
 
 
 def _extension_check(opt):
