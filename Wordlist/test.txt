@@ -5,3 +5,7 @@ d
 e
 ff
 how-to-find-hidden-web-directories-with-dirsearch/
+admin
+payments
+rtmps
+upload

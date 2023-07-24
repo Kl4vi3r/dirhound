@@ -83,25 +83,23 @@ class Scanner():
 
     def threads():
         try:
-                with concurrent.futures.ThreadPoolExecutor(max_workers=options["threads"]) as executor:
-                    futures = {executor.submit(Scanner.scan, word): word for word in options["_wordlist"]}
+            with concurrent.futures.ThreadPoolExecutor(max_workers=options["threads"]) as executor:
+                futures = {executor.submit(Scanner.scan, word): word for word in options["_wordlist"]}
                     
-                    time.sleep(options["delay"])
+                time.sleep(options["delay"])
 
-                    concurrent.futures.wait(futures, return_when=concurrent.futures.FIRST_COMPLETED)
-
-                    for future in futures:
-                        future.cancel()
-
-                    # Shutdown the executor
-                    executor.shutdown()
-
-                    #for future in concurrent.futures.as_completed(futures):
-                    #   future.result()
-
+                # Wait for all futures to complete
+                for future in concurrent.futures.as_completed(futures):
+                    try:
+                        future.result()
+                    except KeyboardInterrupt:
+                        print(FORE["white"] + STYLE["dim"] + "\\nCtrl + C detected, cancelling tasks ...")
+                        for future in futures:
+                            future.cancel()
+                        break
 
         except KeyboardInterrupt:
-            print(FORE["white"] + STYLE["dim"] + "\nCtrl + C detected, exiting the program ...")
+            print(FORE["white"] + STYLE["dim"] + "\\nCtrl + C detected, exiting the program ...")
             sys.exit(0)
         
     def scan(word=""):
@@ -164,9 +162,6 @@ class Output():
             if options["output"] != None: 
                 OUTPUT.run(url, response.status_code, content_length)
 
-        redirect = response.headers.get("location") or ""
-        if redirect:
-            msg += FORE["white"] + STYLE["bright"] + f"     - redirect: {redirect}"
         
         if msg == "": pass
         else: 

@@ -34,3 +34,4 @@ class ConfigParser(configparser.ConfigParser):
         except (configparser.NoOptionError, configparser.NoSectionError):
             pass
         return fallback
+

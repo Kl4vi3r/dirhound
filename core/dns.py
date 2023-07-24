@@ -6,6 +6,7 @@ import dns.resolver
 import dns.query
 import dns.zone
 import requests
+import sys
 
 from core.data import options
 from core.opt import _extension_check
@@ -48,15 +49,16 @@ class DNS:
 class subdomain:
     def main(subdoms):
         try:
+
             ip_value = dns.resolver.resolve(f'{subdoms}.{options["domain"]}', 'A')
 
             for ip_addr in ip_value:
                 ip = ip_addr.to_text()
                 try:
-                    url = f'https://{ip}'
-                    response = requests.get(url)
+                    # url = f'https://{ip}'
+                    # response = requests.get(url)
 
-                    if response.status_code == 200:
+                    # if response.status_code == 200:
                         message = f'{subdoms}.{options["domain"]}' 
                         print(FORE["green"] + STYLE["bright"] + message + f' -> {ip_addr}')
 
@@ -78,16 +80,39 @@ class subdomain:
             pass
         
     def threads():
+        try:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=15) as executor:
+                futures = [executor.submit(subdomain.main, subdoms) for subdoms in options["_wordlist_dns"]]
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=15) as executor:
-            futures = [executor.submit(subdomain.main, subdoms) for subdoms in options["_wordlist_dns"]]
+                for future in concurrent.futures.as_completed(futures):
+                        try:
+                            future.result()
+                        except KeyboardInterrupt:
+                            print(FORE["white"] + STYLE["dim"] + "\\nCtrl + C detected, cancelling tasks ...")
+                            for future in futures:
+                                future.cancel()
+                            break
 
-            for future in concurrent.futures.as_completed(futures):
-                future.result()
+        except KeyboardInterrupt:
+            print(FORE["white"] + STYLE["dim"] + "\\nCtrl + C detected, exiting the program ...")
+            sys.exit(0)
+
+            # concurrent.futures.wait(futures, return_when=concurrent.futures.FIRST_COMPLETED)
+
+            # for future in futures:
+            #     future.cancel()
+
+            # # Shutdown the executor
+            # executor.shutdown()
+
+            # # for future in concurrent.futures.as_completed(futures):
+            # #     future.result()
 
 class DNS_Scanner:
     def run():
         options["_wordlist_dns"] = _extension_check(options)
+
+        print(options["_wordlist_dns"])
 
         if options["output_sub"] != None:
             if ".html" not in options["output_sub"] :
@@ -120,6 +145,7 @@ class DNS_Scanner:
             print("\n")
 
             print(FORE["magenta"] + STYLE["bright"] + f'[{FORMATTING.time_format()}]    Starting subdomain enumeration...\n')
+            print(1)
             subdomain.threads()
 
             print(FORE["magenta"] + STYLE["bright"] + '\nScan has finished ...')
