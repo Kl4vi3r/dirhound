@@ -4,7 +4,6 @@ c
 d
 e
 ff
-how-to-find-hidden-web-directories-with-dirsearch/
 admin.%ext%
 admin
 payments
@@ -21,6 +20,7 @@ m
 maps
 platform
 prod
+
 secure
 secure.latest
 trunkstable

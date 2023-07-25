@@ -131,12 +131,12 @@ class Scanner():
                 Output.response_code(res)
             except requests.exceptions.ConnectionError as e:
                 if "ReadTimeoutError" in str(e):
-                    print(FORE["red"] + STYLE["dim"] + "Request timed out, adjust timeout argument")
+                    print(FORE["red"] + STYLE["dim"] + f"Request timed out for {request_url}, skipping url path")
                 elif "Max retries exceeded" in str(e):
-                    print(FORE["red"] + STYLE["dim"] + "Max retries exceeded with url, adjust retries argument")
+                    print(FORE["red"] + STYLE["dim"] + f"Max retries exceeded with {request_url}, skipping url path")
                 else:
-                    print(FORE["red"] + STYLE["dim"] + "Connection Error, try checking your connection and retry")
-                sys.exit(0)
+                    print(FORE["red"] + STYLE["dim"] + f"Connection Error for {request_url}, skipping url path")
+                pass
             except KeyboardInterrupt:
                 print(FORE["white"] + STYLE["dim"] + "\\nCtrl + C detected, exiting the program ...")
 

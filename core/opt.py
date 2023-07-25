@@ -298,16 +298,19 @@ def _extension_check(opt):
 
 
         if opt["lowercase"] == True:
-            return list(filter(None, map(list_word.str.lower())))
+            return [word.lower() for word in list_word if word]
+            #return list(filter(None, map(list_word.str.lower())))
         
         elif opt["uppercase"] == True:
-            return list(filter(None, map(list_word.str.upper())))
+            return [word.upper() for word in list_word if word]
+            #return list(filter(None, map(list_word.str.upper())))
         
         elif opt["capitalization"] == True:
-            return list(filter(None, map(list_word.str.capitalize())))
+            return [word.capitalize() for word in list_word if word]
+            # return list(filter(None, map(list_word.str.capitalize())))
         
         else:
-            return list(filter(None, list_word))
+            return [word for word in list_word if word]
     
     elif opt["mode"] == "dns":
         f = open(opt["wordlist_dns"], "r")
