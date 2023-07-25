@@ -7,6 +7,7 @@ import requests
 import sys
 import threading
 import time
+import urllib3
 
 from core.data import options
 from core.opt import _extension_check
@@ -16,6 +17,7 @@ from style.format import OUTPUT
 from style.style import *
 from urllib3.util.retry import Retry
 
+stop_threads = threading.Event()
 
 class Scanner():
     def rate_limit(limit_rate, limit_interval):
@@ -82,6 +84,8 @@ class Scanner():
         return response
 
     def threads():
+        global stop_threads
+
         try:
             with concurrent.futures.ThreadPoolExecutor(max_workers=options["threads"]) as executor:
                 futures = {executor.submit(Scanner.scan, word): word for word in options["_wordlist"]}
@@ -94,21 +98,29 @@ class Scanner():
                         future.result()
                     except KeyboardInterrupt:
                         print(FORE["white"] + STYLE["dim"] + "\\nCtrl + C detected, cancelling tasks ...")
+                        
+                        stop_threads.set()
+
                         for future in futures:
                             future.cancel()
                         break
 
         except KeyboardInterrupt:
             print(FORE["white"] + STYLE["dim"] + "\\nCtrl + C detected, exiting the program ...")
+            
+            stop_threads.set()
+
             sys.exit(0)
         
     def scan(word=""):
+        global stop_threads
+
         header = {
             "User-Agent":f"{options['user_agent']}"
             "Cookie:"f"{options['cookie']}"
         }
         
-        if word != "":
+        if word != "" and not stop_threads.is_set():
             if options["url"].endswith("/"):
                 request_url = f'{options["url"]}{word}'
             else:
@@ -117,8 +129,16 @@ class Scanner():
             try:
                 res = Scanner._requests(request_url, options["method"], header, options["allow_redirect"], options["timeout"])
                 Output.response_code(res)
-            except requests.exceptions.Timeout:
-                pass
+            except requests.exceptions.ConnectionError as e:
+                if "ReadTimeoutError" in str(e):
+                    print(FORE["red"] + STYLE["dim"] + "Request timed out, adjust timeout argument")
+                elif "Max retries exceeded" in str(e):
+                    print(FORE["red"] + STYLE["dim"] + "Max retries exceeded with url, adjust retries argument")
+                else:
+                    print(FORE["red"] + STYLE["dim"] + "Connection Error, try checking your connection and retry")
+                sys.exit(0)
+            except KeyboardInterrupt:
+                print(FORE["white"] + STYLE["dim"] + "\\nCtrl + C detected, exiting the program ...")
 
     def run():
         options["_wordlist"] = _extension_check(options)

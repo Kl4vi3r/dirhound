@@ -7,12 +7,15 @@ import dns.query
 import dns.zone
 import requests
 import sys
+import threading
 
 from core.data import options
 from core.opt import _extension_check
 from style.format import FORMATTING
 from style.format import OUTPUT_SUBDOMAIN
 from style.style import *
+
+stop_threads = threading.Event()
 
 class DNS:
     def main(record_type):
@@ -48,26 +51,26 @@ class DNS:
 
 class subdomain:
     def main(subdoms):
+        global stop_threads
         try:
+            if not stop_threads.is_set():
+                ip_value = dns.resolver.resolve(f'{subdoms}.{options["domain"]}', 'A')
 
-            ip_value = dns.resolver.resolve(f'{subdoms}.{options["domain"]}', 'A')
+                for ip_addr in ip_value:
+                    ip = ip_addr.to_text()
+                    try:
+                        # url = f'https://{ip}'
+                        # response = requests.get(url)
 
-            for ip_addr in ip_value:
-                ip = ip_addr.to_text()
-                try:
-                    # url = f'https://{ip}'
-                    # response = requests.get(url)
+                        # if response.status_code == 200:
+                            message = f'{subdoms}.{options["domain"]}' 
+                            print(FORE["green"] + STYLE["bright"] + message + f' -> {ip_addr}')
 
-                    # if response.status_code == 200:
-                        message = f'{subdoms}.{options["domain"]}' 
-                        print(FORE["green"] + STYLE["bright"] + message + f' -> {ip_addr}')
-
-                        if options["output_sub"] != None:
-                            OUTPUT_SUBDOMAIN.run(message, ip_addr)
-                except requests.exceptions.RequestException:
-                    pass
-                    
-
+                            if options["output_sub"] != None:
+                                OUTPUT_SUBDOMAIN.run(message, ip_addr)
+                    except requests.exceptions.RequestException:
+                        pass
+                        
         except requests.ConnectionError:
             pass
         except dns.resolver.NXDOMAIN:
@@ -80,6 +83,8 @@ class subdomain:
             pass
         
     def threads():
+        global stop_threads
+
         try:
             with concurrent.futures.ThreadPoolExecutor(max_workers=15) as executor:
                 futures = [executor.submit(subdomain.main, subdoms) for subdoms in options["_wordlist_dns"]]
@@ -89,30 +94,25 @@ class subdomain:
                             future.result()
                         except KeyboardInterrupt:
                             print(FORE["white"] + STYLE["dim"] + "\\nCtrl + C detected, cancelling tasks ...")
+
+                            stop_threads.set()
+
                             for future in futures:
                                 future.cancel()
                             break
 
         except KeyboardInterrupt:
             print(FORE["white"] + STYLE["dim"] + "\\nCtrl + C detected, exiting the program ...")
+
+            stop_threads.set()
+
             sys.exit(0)
 
-            # concurrent.futures.wait(futures, return_when=concurrent.futures.FIRST_COMPLETED)
-
-            # for future in futures:
-            #     future.cancel()
-
-            # # Shutdown the executor
-            # executor.shutdown()
-
-            # # for future in concurrent.futures.as_completed(futures):
-            # #     future.result()
 
 class DNS_Scanner:
     def run():
         options["_wordlist_dns"] = _extension_check(options)
 
-        print(options["_wordlist_dns"])
 
         if options["output_sub"] != None:
             if ".html" not in options["output_sub"] :

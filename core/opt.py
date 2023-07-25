@@ -136,7 +136,7 @@ def _options():
 
 
 
-        if not 1 < args.threads < 50:
+        if not 1 < args.threads <= 100:
             print(FORE["red"] + "[warn] thread number must be in range between 1 - 100")
             sys.exit()
         
@@ -263,6 +263,14 @@ def _record_check(domain, rec):
     except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
         return True
 
+def encoding_file (file_path, encodings=("utf-8", "iso-8859-1")):
+    for encoding in encodings:
+        try:
+            with open(file_path, "r", encoding=encoding) as f:
+                return f.read().split("\n")
+        except UnicodeDecodeError:
+            pass
+    raise ValueError(f"Could not read file {file_path} with any of the provided encodings")
 
 def _extension_check(opt):
     list_word = set()
@@ -271,9 +279,9 @@ def _extension_check(opt):
     regex_ext_pattern = re.compile(_ext, re.IGNORECASE)
 
     if opt["mode"] == "dir":
-        f = open(opt["wordlist"], "r")
+        f = encoding_file(opt["wordlist"])
     
-        for word in f.read().split("\n"):
+        for word in f:
 
             word = word.lstrip("/")
             
