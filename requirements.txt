@@ -12,4 +12,4 @@ psutil==5.9.5
 pycryptodome==3.18.0
 rich_argparse==1.1.1
 setuptools==65.5.1
-validators==0.20.0
+validators==0.21.0
