@@ -9,7 +9,7 @@ numpy==1.24.3
 pip==23.1.2
 pipdeptree==2.9.4
 psutil==5.9.5
-pycryptodome==3.18.0
+pycryptodome==3.19.1
 rich_argparse==1.1.1
 setuptools==65.5.1
 validators==0.20.0
